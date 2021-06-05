@@ -15,6 +15,8 @@ struct Opts {
     dir: Option<String>,
     #[structopt(short, long)]
     path: Option<String>,
+    #[structopt(short, long)]
+    force: bool,
 }
 
 impl Opts {
@@ -48,9 +50,8 @@ fn main() {
 fn run(opts: &Opts) -> Result<()> {
     let downloader = Downloader::new();
     match classify_url(&opts.url)? {
-        Url::Author(url) => downloader.stories_by_author(url, opts.dir()),
-        Url::Story(url) => downloader.story(url, &opts.context()),
-        Url::WholeStory(url) => downloader.whole_story(url, &opts.context()),
+        Url::Author(url) => downloader.stories_by_author(url, opts.dir(), opts.force),
+        Url::Story(url) | Url::WholeStory(url) => downloader.story(url, &opts.context(), opts.force),
     }
 }
 
