@@ -1,0 +1,12 @@
+[package]
+name = "klit"
+version = "0.2.0"
+authors = ["Keep Calm <keepcalmandbyo@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+regex = "1.5.4"
+structopt = "0.3.21"
+ureq = "2.1.1"
