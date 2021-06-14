@@ -23,13 +23,21 @@ impl StorageContext<'_> {
                 let title = sanitize_title(title);
                 let mut path = path.join(title);
                 path.set_extension("html");
-                let mut file = OpenOptions::new().create(true).create_new(!force).write(true).open(&path)?;
+                let mut file = OpenOptions::new()
+                    .create(true)
+                    .create_new(!force)
+                    .write(true)
+                    .open(&path)?;
                 file.write_all(text.as_bytes())?;
                 Ok(path)
             }
 
             StorageContext::Path(path) => {
-                let mut file = OpenOptions::new().create(true).create_new(!force).write(true).open(&path)?;
+                let mut file = OpenOptions::new()
+                    .create(true)
+                    .create_new(!force)
+                    .write(true)
+                    .open(&path)?;
                 file.write_all(text.as_bytes())?;
                 Ok(path.into())
             }
@@ -37,7 +45,11 @@ impl StorageContext<'_> {
             StorageContext::None => {
                 let mut path = sanitize_title(title);
                 path += ".html";
-                let mut file = OpenOptions::new().create(true).create_new(!force).write(true).open(&path)?;
+                let mut file = OpenOptions::new()
+                    .create(true)
+                    .create_new(!force)
+                    .write(true)
+                    .open(&path)?;
                 file.write_all(text.as_bytes())?;
                 Ok(path.into())
             }

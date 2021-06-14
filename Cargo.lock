@@ -135,6 +135,7 @@ dependencies = [
  "regex",
  "structopt",
  "ureq",
+ "url",
 ]
 
 [[package]]

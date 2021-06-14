@@ -1,8 +1,17 @@
-mod download;
+mod adapter;
+mod document;
+// mod download;
 mod error;
 
-use download::{Downloader, StorageContext};
+use std::{
+    collections::{HashMap, VecDeque},
+    str::FromStr,
+};
+
+use adapter::{Adapter, BuildAdapter, BuildBdsmLibraryAdapter};
+// use download::{Downloader, StorageContext};
 use structopt::StructOpt;
+use url::Url;
 
 use crate::error::Error;
 
@@ -10,32 +19,22 @@ pub type Result<T, E = error::Error> = std::result::Result<T, E>;
 
 #[derive(Clone, Debug, StructOpt)]
 struct Opts {
+    /// an item or directory to be retrieved
     url: String,
-    #[structopt(short, long)]
-    dir: Option<String>,
-    #[structopt(short, long)]
+    /// a directory in which to store retrieved items
     path: Option<String>,
+    /// if set, overwrite existing items
     #[structopt(short, long)]
-    force: bool,
+    overwrite: bool,
 }
 
 impl Opts {
-    fn dir(&self) -> Option<&str> {
-        self.dir.as_ref().map(AsRef::as_ref)
+    fn domain(&self) -> Result<String> {
+        Url::from_str(&self.url)?
+            .domain()
+            .map(Into::into)
+            .ok_or_else(|| Error::MissingDomain(self.url.clone()))
     }
-
-    fn context(&self) -> StorageContext {
-        self.path
-            .as_ref()
-            .map(|path| StorageContext::Path(path.as_ref()))
-            .unwrap_or_default()
-    }
-}
-
-enum Url<'a> {
-    Author(&'a str),
-    Story(&'a str),
-    WholeStory(&'a str),
 }
 
 fn main() {
@@ -48,25 +47,39 @@ fn main() {
 }
 
 fn run(opts: &Opts) -> Result<()> {
-    let downloader = Downloader::new();
-    match classify_url(&opts.url)? {
-        Url::Author(url) => downloader.stories_by_author(url, opts.dir(), opts.force),
-        Url::Story(url) | Url::WholeStory(url) => downloader.story(url, &opts.context(), opts.force),
-    }
+    let domain = opts.domain()?;
+    let adapters = register_adapters();
+    let adapter = adapters
+        .get(&domain)
+        .ok_or_else(|| Error::UnknownDomain(domain))?
+        .build();
+
+    let directory = dbg!(adapter.directory(&opts.url)?);
+
+    Ok(())
 }
 
-fn classify_url(url: &str) -> Result<Url> {
-    if url.contains("bdsmlibrary.com/stories/author.php") {
-        return Ok(Url::Author(url));
-    }
-
-    if url.contains("bdsmlibrary.com/stories/wholestory.php") {
-        return Ok(Url::WholeStory(url));
-    }
-
-    if url.contains("bdsmlibrary.com/stories/story.php") {
-        return Ok(Url::Story(url));
-    }
-
-    Err(Error::BadAddress(url.into()))
+fn register_adapters() -> HashMap<String, Box<dyn BuildAdapter + 'static>> {
+    let mut map = HashMap::new();
+    map.insert(
+        "www.bdsmlibrary.com".into(),
+        Box::new(BuildBdsmLibraryAdapter) as Box<dyn BuildAdapter + 'static>,
+    );
+    map
 }
+
+// fn classify_url(url: &str) -> Result<Url> {
+//     if url.contains("bdsmlibrary.com/stories/author.php") {
+//         return Ok(Url::Author(url));
+//     }
+
+//     if url.contains("bdsmlibrary.com/stories/wholestory.php") {
+//         return Ok(Url::WholeStory(url));
+//     }
+
+//     if url.contains("bdsmlibrary.com/stories/story.php") {
+//         return Ok(Url::Story(url));
+//     }
+
+//     Err(Error::BadAddress(url.into()))
+// }
