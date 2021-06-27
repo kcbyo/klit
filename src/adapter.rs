@@ -85,18 +85,18 @@ pub trait BuildAdapter {
 }
 
 pub trait Adapter {
-    fn document(&self, url: &str) -> Result<Document>;
+    fn download(&self, url: &DocumentUrl) -> Result<Document>;
     fn directory(&self, url: &str) -> Result<DirectoryUrls>;
 }
 
 mod prelude {
     pub static USER_AGENT: &str = "";
-    pub use super::{Adapter, BuildAdapter, DirectoryUrls, MetaSource};
+    pub use super::{Adapter, BuildAdapter, DirectoryUrls, DocumentUrl, MetaSource};
     pub use crate::{
         document::{Document, Meta},
         Result,
     };
     pub use regex::{Regex, RegexBuilder};
+    pub use reqwest::blocking::Client;
     pub use std::collections::HashMap;
-    pub use ureq::{Agent, AgentBuilder};
 }

@@ -11,7 +11,7 @@ impl BuildAdapter for BuildBdsmLibraryAdapter {
 }
 
 pub struct BdsmLibraryAdapter {
-    agent: Agent,
+    client: Client,
     author_pattern: Regex,
     story_id_pattern: Regex,
     title_pattern: Regex,
@@ -20,7 +20,7 @@ pub struct BdsmLibraryAdapter {
 impl BdsmLibraryAdapter {
     fn new() -> Self {
         BdsmLibraryAdapter {
-            agent: AgentBuilder::new().user_agent(USER_AGENT).build(),
+            client: Client::builder().user_agent(USER_AGENT).build().unwrap(),
             author_pattern: Regex::new(r"<title>BDSM Library - Stories by ([^<]+)</title>")
                 .unwrap(),
             story_id_pattern: Regex::new(r"story\.php\?storyid=(\d+)").unwrap(),
@@ -36,12 +36,23 @@ impl Default for BdsmLibraryAdapter {
 }
 
 impl Adapter for BdsmLibraryAdapter {
-    fn document(&self, url: &str) -> Result<Document> {
-        todo!()
+    fn download(&self, url: &DocumentUrl) -> Result<Document> {
+        let text = self.client.get(&url.url).send()?.text()?;
+        let mut meta = url.meta.clone();
+        if let Some(title) = self
+            .title_pattern
+            .captures(&text)
+            .and_then(|x| x.get(1).map(|x| x.as_str()))
+        {
+            meta.insert(Meta::Title, title.into());
+        }
+
+        Ok(Document { meta, text })
     }
 
     fn directory(&self, url: &str) -> Result<DirectoryUrls> {
-        let content = self.agent.get(url).call()?.into_string()?;
+        let content = self.client.get(url).send()?.text()?;
+        // let content = self.agent.get(url).call()?.into_string()?;
         let author = self
             .author_pattern
             .captures(&content)

@@ -1,15 +1,11 @@
 mod adapter;
 mod document;
-// mod download;
 mod error;
 
-use std::{
-    collections::{HashMap, VecDeque},
-    str::FromStr,
-};
+use std::{borrow::Cow, collections::HashMap, fs, path::Path, str::FromStr};
 
-use adapter::{Adapter, BuildAdapter, BuildBdsmLibraryAdapter};
-// use download::{Downloader, StorageContext};
+use adapter::{BuildAdapter, BuildBdsmLibraryAdapter};
+use colored::Colorize;
 use structopt::StructOpt;
 use url::Url;
 
@@ -39,7 +35,6 @@ impl Opts {
 
 fn main() {
     let opts = Opts::from_args();
-
     if let Err(e) = run(&opts) {
         eprintln!("{}", e);
         std::process::exit(1);
@@ -50,36 +45,65 @@ fn run(opts: &Opts) -> Result<()> {
     let domain = opts.domain()?;
     let adapters = register_adapters();
     let adapter = adapters
-        .get(&domain)
-        .ok_or_else(|| Error::UnknownDomain(domain))?
+        .get(&*domain)
+        .ok_or(Error::UnknownDomain(domain))?
         .build();
 
-    let directory = dbg!(adapter.directory(&opts.url)?);
+    let directory = adapter.directory(&opts.url)?;
+    for url in directory {
+        let url = match url {
+            Ok(url) => url,
+            Err(e) => {
+                let message = format!("Warn: {}", e);
+                eprintln!("{}", message.yellow());
+                continue;
+            }
+        };
+
+        let document = match adapter.download(&url) {
+            Ok(document) => document,
+            Err(e) => {
+                let message = format!("Warn: {}", e);
+                eprintln!("{}", message.yellow());
+                continue;
+            }
+        };
+
+        let filename = document
+            .title()
+            .map(|title| Cow::from(sanitize_title(title)))
+            .unwrap_or(Cow::Borrowed("unknown"))
+            .to_string()
+            + "."
+            + document.extension();
+
+        match opts.path.as_ref() {
+            Some(path) => {
+                let path = Path::new(path);
+                let path = path.join(&filename);
+                fs::write(path, document.content())?;
+            }
+            None => {
+                fs::write(filename, document.content())?;
+            }
+        }
+    }
 
     Ok(())
 }
 
-fn register_adapters() -> HashMap<String, Box<dyn BuildAdapter + 'static>> {
+fn register_adapters() -> HashMap<&'static str, Box<dyn BuildAdapter + 'static>> {
     let mut map = HashMap::new();
     map.insert(
-        "www.bdsmlibrary.com".into(),
+        "www.bdsmlibrary.com",
         Box::new(BuildBdsmLibraryAdapter) as Box<dyn BuildAdapter + 'static>,
     );
     map
 }
 
-// fn classify_url(url: &str) -> Result<Url> {
-//     if url.contains("bdsmlibrary.com/stories/author.php") {
-//         return Ok(Url::Author(url));
-//     }
-
-//     if url.contains("bdsmlibrary.com/stories/wholestory.php") {
-//         return Ok(Url::WholeStory(url));
-//     }
-
-//     if url.contains("bdsmlibrary.com/stories/story.php") {
-//         return Ok(Url::Story(url));
-//     }
-
-//     Err(Error::BadAddress(url.into()))
-// }
+/// Remove elements of a title that cannot appear in file paths
+fn sanitize_title(title: &str) -> String {
+    title
+        .replace(|u| u == '\\' || u == '"' || u == '?', "")
+        .replace(':', " -")
+}
