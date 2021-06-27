@@ -4,7 +4,7 @@ mod error;
 
 use std::{borrow::Cow, collections::HashMap, fs, path::Path, str::FromStr};
 
-use adapter::{BuildAdapter, BuildBdsmLibraryAdapter};
+use adapter::BuildAdapter;
 use colored::Colorize;
 use structopt::StructOpt;
 use url::Url;
@@ -81,10 +81,12 @@ fn run(opts: &Opts) -> Result<()> {
             Some(path) => {
                 let path = Path::new(path);
                 let path = path.join(&filename);
-                fs::write(path, document.content())?;
+                fs::write(&path, document.content())?;
+                println!("{}", path.display());
             }
             None => {
-                fs::write(filename, document.content())?;
+                fs::write(&filename, document.content())?;
+                println!("{}", filename);
             }
         }
     }
@@ -93,11 +95,13 @@ fn run(opts: &Opts) -> Result<()> {
 }
 
 fn register_adapters() -> HashMap<&'static str, Box<dyn BuildAdapter + 'static>> {
+    use adapter::*;
     let mut map = HashMap::new();
     map.insert(
         "www.bdsmlibrary.com",
         Box::new(BuildBdsmLibraryAdapter) as Box<dyn BuildAdapter + 'static>,
     );
+    map.insert("sexstories.com", Box::new(BuildSexStoriesAdapter));
     map
 }
 

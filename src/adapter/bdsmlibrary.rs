@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use super::prelude::*;
 
 pub struct BuildBdsmLibraryAdapter;
@@ -19,7 +17,7 @@ pub struct BdsmLibraryAdapter {
 
 impl BdsmLibraryAdapter {
     fn new() -> Self {
-        BdsmLibraryAdapter {
+        Self {
             client: Client::builder().user_agent(USER_AGENT).build().unwrap(),
             author_pattern: Regex::new(r"<title>BDSM Library - Stories by ([^<]+)</title>")
                 .unwrap(),
@@ -29,30 +27,9 @@ impl BdsmLibraryAdapter {
     }
 }
 
-impl Default for BdsmLibraryAdapter {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl Adapter for BdsmLibraryAdapter {
-    fn download(&self, url: &DocumentUrl) -> Result<Document> {
-        let text = self.client.get(&url.url).send()?.text()?;
-        let mut meta = url.meta.clone();
-        if let Some(title) = self
-            .title_pattern
-            .captures(&text)
-            .and_then(|x| x.get(1).map(|x| x.as_str()))
-        {
-            meta.insert(Meta::Title, title.into());
-        }
-
-        Ok(Document { meta, text })
-    }
-
     fn directory(&self, url: &str) -> Result<DirectoryUrls> {
         let content = self.client.get(url).send()?.text()?;
-        // let content = self.agent.get(url).call()?.into_string()?;
         let author = self
             .author_pattern
             .captures(&content)
@@ -67,16 +44,30 @@ impl Adapter for BdsmLibraryAdapter {
                     .map(|capture| StoryId(capture.as_str().into()))
             });
 
-        let mut metadata = HashMap::new();
+        let mut meta = HashMap::new();
         if let Some(author) = author {
-            metadata.insert(Meta::Author, author);
+            meta.insert(Meta::Author, author);
         }
 
         Ok(DirectoryUrls {
             urls: story_ids.map(|id| id.url()).collect(),
             page: None,
-            meta: Some(Box::new(metadata)),
+            meta,
         })
+    }
+
+    fn download(&self, url: &DocumentUrl) -> Result<Document> {
+        let text = self.client.get(&url.url).send()?.text()?;
+        let mut meta = url.meta.clone();
+        if let Some(title) = self
+            .title_pattern
+            .captures(&text)
+            .and_then(|x| x.get(1).map(|x| x.as_str()))
+        {
+            meta.insert(Meta::Title, title.into());
+        }
+
+        Ok(Document { meta, text })
     }
 }
 

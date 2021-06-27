@@ -1,4 +1,5 @@
 mod bdsmlibrary;
+mod sexstories;
 
 use std::collections::{HashMap, VecDeque};
 
@@ -8,6 +9,7 @@ use crate::{
 };
 
 pub use bdsmlibrary::{BdsmLibraryAdapter, BuildBdsmLibraryAdapter};
+pub use sexstories::{BuildSexStoriesAdapter, SexStoriesAdapter};
 
 pub struct DocumentUrl {
     meta: HashMap<Meta, String>,
@@ -17,7 +19,7 @@ pub struct DocumentUrl {
 pub struct DirectoryUrls {
     urls: VecDeque<String>,
     page: Option<Box<dyn Paging + 'static>>,
-    meta: Option<Box<dyn MetaSource + 'static>>,
+    meta: HashMap<Meta, String>,
 }
 
 impl std::fmt::Debug for DirectoryUrls {
@@ -32,33 +34,13 @@ impl std::fmt::Debug for DirectoryUrls {
                     "None"
                 },
             )
-            .field(
-                "meta",
-                &if self.meta.is_some() {
-                    "Some(Meta)"
-                } else {
-                    "None"
-                },
-            )
+            .field("meta", &self.meta)
             .finish()
     }
 }
 
 pub trait Paging {
     fn next_page(&mut self) -> Option<Result<VecDeque<String>>>;
-}
-
-pub trait MetaSource {
-    fn apply_metadata(&self, url: String) -> DocumentUrl;
-}
-
-impl MetaSource for HashMap<Meta, String> {
-    fn apply_metadata(&self, url: String) -> DocumentUrl {
-        DocumentUrl {
-            meta: self.clone(),
-            url,
-        }
-    }
 }
 
 impl Iterator for DirectoryUrls {
@@ -75,7 +57,10 @@ impl Iterator for DirectoryUrls {
 
         self.urls
             .pop_front()
-            .and_then(|url| self.meta.as_ref().map(|meta| meta.apply_metadata(url)))
+            .map(|url| DocumentUrl {
+                meta: self.meta.clone(),
+                url,
+            })
             .map(Ok)
     }
 }
@@ -85,13 +70,13 @@ pub trait BuildAdapter {
 }
 
 pub trait Adapter {
-    fn download(&self, url: &DocumentUrl) -> Result<Document>;
     fn directory(&self, url: &str) -> Result<DirectoryUrls>;
+    fn download(&self, url: &DocumentUrl) -> Result<Document>;
 }
 
 mod prelude {
     pub static USER_AGENT: &str = "";
-    pub use super::{Adapter, BuildAdapter, DirectoryUrls, DocumentUrl, MetaSource};
+    pub use super::{Adapter, BuildAdapter, DirectoryUrls, DocumentUrl};
     pub use crate::{
         document::{Document, Meta},
         Result,
