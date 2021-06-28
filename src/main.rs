@@ -113,5 +113,5 @@ fn register_adapters() -> HashMap<&'static str, Box<dyn BuildAdapter + 'static>>
 fn sanitize_title(title: &str) -> String {
     title
         .replace(|u| u == '\\' || u == '"' || u == '?', "")
-        .replace(':', " -")
+        .replace(':', "_")
 }
