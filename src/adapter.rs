@@ -1,5 +1,6 @@
 mod bdsmlibrary;
 mod sexstories;
+mod thefetlibrary;
 
 use std::collections::{HashMap, VecDeque};
 
@@ -10,6 +11,7 @@ use crate::{
 
 pub use bdsmlibrary::{BdsmLibraryAdapter, BuildBdsmLibraryAdapter};
 pub use sexstories::{BuildSexStoriesAdapter, SexStoriesAdapter};
+pub use thefetlibrary::{BuildFetLibraryAdapter, FetLibraryAdapter};
 
 pub struct DocumentUrl {
     meta: HashMap<Meta, String>,
@@ -71,7 +73,7 @@ pub trait BuildAdapter {
 
 pub trait Adapter {
     fn directory(&self, url: &str) -> Result<DirectoryUrls>;
-    fn download(&self, url: &DocumentUrl) -> Result<Document>;
+    fn download(&self, context: DocumentUrl) -> Result<Document>;
 }
 
 mod prelude {

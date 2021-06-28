@@ -56,10 +56,10 @@ impl Adapter for SexStoriesAdapter {
         })
     }
 
-    fn download(&self, url: &DocumentUrl) -> Result<Document> {
-        let text = self.client.get(&url.url).send()?.text()?;
+    fn download(&self, context: DocumentUrl) -> Result<Document> {
+        let text = self.client.get(&context.url).send()?.text()?;
         let document = nipper::Document::from(&text);
-        let mut meta = url.meta.clone();
+        let mut meta = context.meta;
         if let Some(title) = self
             .title
             .captures(&document.select("div.story_info > h2").text())

@@ -56,9 +56,9 @@ impl Adapter for BdsmLibraryAdapter {
         })
     }
 
-    fn download(&self, url: &DocumentUrl) -> Result<Document> {
-        let text = self.client.get(&url.url).send()?.text()?;
-        let mut meta = url.meta.clone();
+    fn download(&self, context: DocumentUrl) -> Result<Document> {
+        let text = self.client.get(&context.url).send()?.text()?;
+        let mut meta = context.meta;
         if let Some(title) = self
             .title_pattern
             .captures(&text)

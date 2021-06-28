@@ -49,6 +49,12 @@ fn run(opts: &Opts) -> Result<()> {
         .ok_or(Error::UnknownDomain(domain))?
         .build();
 
+    if let Some(path) = opts.path.as_ref().map(Path::new) {
+        if !path.exists() {
+            fs::create_dir_all(path)?;
+        }
+    }
+
     let directory = adapter.directory(&opts.url)?;
     for url in directory {
         let url = match url {
@@ -60,7 +66,7 @@ fn run(opts: &Opts) -> Result<()> {
             }
         };
 
-        let document = match adapter.download(&url) {
+        let document = match adapter.download(url) {
             Ok(document) => document,
             Err(e) => {
                 let message = format!("Warn: {}", e);
@@ -96,12 +102,10 @@ fn run(opts: &Opts) -> Result<()> {
 
 fn register_adapters() -> HashMap<&'static str, Box<dyn BuildAdapter + 'static>> {
     use adapter::*;
-    let mut map = HashMap::new();
-    map.insert(
-        "www.bdsmlibrary.com",
-        Box::new(BuildBdsmLibraryAdapter) as Box<dyn BuildAdapter + 'static>,
-    );
+    let mut map: HashMap<_, Box<dyn BuildAdapter + 'static>> = HashMap::new();
     map.insert("sexstories.com", Box::new(BuildSexStoriesAdapter));
+    map.insert("www.bdsmlibrary.com", Box::new(BuildBdsmLibraryAdapter));
+    map.insert("www.thefetlibrary.com", Box::new(BuildFetLibraryAdapter));
     map
 }
 
