@@ -1,3 +1,4 @@
+mod asstr;
 mod bdsmlibrary;
 mod sexstories;
 mod thefetlibrary;
@@ -9,6 +10,7 @@ use crate::{
     Result,
 };
 
+pub use asstr::{AsstrAdapter, BuildAsstrAdapter};
 pub use bdsmlibrary::{BdsmLibraryAdapter, BuildBdsmLibraryAdapter};
 pub use sexstories::{BuildSexStoriesAdapter, SexStoriesAdapter};
 pub use thefetlibrary::{BuildFetLibraryAdapter, FetLibraryAdapter};

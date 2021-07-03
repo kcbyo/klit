@@ -103,8 +103,9 @@ fn run(opts: &Opts) -> Result<()> {
 fn register_adapters() -> HashMap<&'static str, Box<dyn BuildAdapter + 'static>> {
     use adapter::*;
     let mut map: HashMap<_, Box<dyn BuildAdapter + 'static>> = HashMap::new();
-    map.insert("sexstories.com", Box::new(BuildSexStoriesAdapter));
+    map.insert("www.asstr.org", Box::new(BuildAsstrAdapter));
     map.insert("www.bdsmlibrary.com", Box::new(BuildBdsmLibraryAdapter));
+    map.insert("www.sexstories.com", Box::new(BuildSexStoriesAdapter));
     map.insert("www.thefetlibrary.com", Box::new(BuildFetLibraryAdapter));
     map
 }
