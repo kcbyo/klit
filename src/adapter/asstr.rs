@@ -63,5 +63,8 @@ mod tests {
     fn name_from_url() {
         let actual = super::name_from_url("https://www.asstr.org/files/Collections/Old_Joe's_Collection/Rape/Dark_Dreamer/SORO-SLV.002");
         assert_eq!("SORO-SLV.002", actual);
+
+        let actual = super::name_from_url("hello.txt");
+        assert_eq!("hello.txt", actual);
     }
 }
