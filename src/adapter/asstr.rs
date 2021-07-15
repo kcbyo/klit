@@ -43,6 +43,26 @@ impl Adapter for AsstrAdapter {
     }
 
     fn download(&self, context: DocumentUrl) -> Result<Document> {
-        todo!()
+        let text = self.client.get(&context.url).send()?.text()?;
+        let mut meta = context.meta;
+        let name = name_from_url(&context.url);
+        meta.insert(Meta::Title, name.into());
+        meta.insert(Meta::Extension, String::new());
+        Ok(Document { meta, text })
+    }
+}
+
+fn name_from_url(url: &str) -> &str {
+    let left = url.rfind('/').map(|idx| idx + 1).unwrap_or_default();
+    let right = url.rfind('?').unwrap_or(url.len());
+    &url[left..right]
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn name_from_url() {
+        let actual = super::name_from_url("https://www.asstr.org/files/Collections/Old_Joe's_Collection/Rape/Dark_Dreamer/SORO-SLV.002");
+        assert_eq!("SORO-SLV.002", actual);
     }
 }

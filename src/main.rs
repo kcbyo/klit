@@ -75,13 +75,22 @@ fn run(opts: &Opts) -> Result<()> {
             }
         };
 
-        let filename = document
-            .title()
-            .map(|title| Cow::from(sanitize_title(title)))
-            .unwrap_or(Cow::Borrowed("unknown"))
-            .to_string()
-            + "."
-            + document.extension();
+        let extension = document.extension();
+        let filename = if !extension.is_empty() {
+            document
+                .title()
+                .map(|title| Cow::from(sanitize_title(title)))
+                .unwrap_or(Cow::Borrowed("unknown"))
+                .to_string()
+                + "."
+                + extension
+        } else {
+            document
+                .title()
+                .map(|title| Cow::from(sanitize_title(title)))
+                .unwrap_or(Cow::Borrowed("unknown"))
+                .to_string()
+        };
 
         match opts.path.as_ref() {
             Some(path) => {
