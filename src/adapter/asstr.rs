@@ -47,7 +47,6 @@ impl Adapter for AsstrAdapter {
         let mut meta = context.meta;
         let name = name_from_url(&context.url);
         meta.insert(Meta::Title, name.into());
-        meta.insert(Meta::Extension, String::new());
         Ok(Document { meta, text })
     }
 }
