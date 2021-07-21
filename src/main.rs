@@ -92,17 +92,16 @@ fn run(opts: &Opts) -> Result<()> {
                 .to_string()
         };
 
-        match opts.path.as_ref() {
-            Some(path) => {
-                let path = Path::new(path);
-                let path = path.join(&filename);
-                fs::write(&path, document.content())?;
-                println!("{}", path.display());
-            }
-            None => {
-                fs::write(&filename, document.content())?;
-                println!("{}", filename);
-            }
+        let path = opts.path.as_ref().map(|path| {
+            let path = Path::new(path);
+            Cow::from(path.join(&filename))
+        }).unwrap_or_else(|| Cow::from(Path::new(&filename)));
+
+        if !path.exists() || opts.overwrite {
+            fs::write(&path, document.content())?;
+            println!("{}", path.display());
+        } else {
+            eprintln!("warning: file exists: {}", path.display());
         }
     }
 
