@@ -2,7 +2,9 @@ mod adapter;
 mod document;
 mod error;
 
-use std::{borrow::Cow, collections::HashMap, fs, path::Path, str::FromStr};
+use std::{
+    borrow::Cow, collections::HashMap, fs, path::Path, str::FromStr, thread, time::Duration,
+};
 
 use adapter::BuildAdapter;
 use colored::Colorize;
@@ -22,6 +24,10 @@ struct Opts {
     /// if set, overwrite existing items
     #[structopt(short, long)]
     overwrite: bool,
+
+    /// an optional wait time (added between requests)
+    #[structopt(short, long)]
+    wait: Option<u64>,
 }
 
 impl Opts {
@@ -56,7 +62,13 @@ fn run(opts: &Opts) -> Result<()> {
     }
 
     let directory = adapter.directory(&opts.url)?;
+    let mut first_iteration = true;
+
     for url in directory {
+        if let Some(wait) = opts.wait.filter(|_| !first_iteration) {
+            thread::sleep(Duration::from_secs(wait));
+        }
+
         let url = match url {
             Ok(url) => url,
             Err(e) => {
@@ -92,16 +104,24 @@ fn run(opts: &Opts) -> Result<()> {
                 .to_string()
         };
 
-        let path = opts.path.as_ref().map(|path| {
-            let path = Path::new(path);
-            Cow::from(path.join(&filename))
-        }).unwrap_or_else(|| Cow::from(Path::new(&filename)));
+        let path = opts
+            .path
+            .as_ref()
+            .map(|path| {
+                let path = Path::new(path);
+                Cow::from(path.join(&filename))
+            })
+            .unwrap_or_else(|| Cow::from(Path::new(&filename)));
 
         if !path.exists() || opts.overwrite {
             fs::write(&path, document.content())?;
             println!("{}", path.display());
         } else {
             eprintln!("warning: file exists: {}", path.display());
+        }
+
+        if first_iteration {
+            first_iteration = false;
         }
     }
 
