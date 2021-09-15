@@ -135,6 +135,7 @@ fn register_adapters() -> HashMap<&'static str, Box<dyn BuildAdapter + 'static>>
     map.insert("www.bdsmlibrary.com", Box::new(BuildBdsmLibraryAdapter));
     map.insert("www.sexstories.com", Box::new(BuildSexStoriesAdapter));
     map.insert("www.thefetlibrary.com", Box::new(BuildFetLibraryAdapter));
+    map.insert("www.utopiastories.com", Box::new(BuildGaggedUtopiaAdapter));
     map
 }
 

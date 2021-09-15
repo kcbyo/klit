@@ -1,5 +1,6 @@
 mod asstr;
 mod bdsmlibrary;
+mod gaggedutopia;
 mod sexstories;
 mod thefetlibrary;
 
@@ -12,9 +13,11 @@ use crate::{
 
 pub use asstr::{AsstrAdapter, BuildAsstrAdapter};
 pub use bdsmlibrary::{BdsmLibraryAdapter, BuildBdsmLibraryAdapter};
+pub use gaggedutopia::{BuildGaggedUtopiaAdapter, GaggedUtopiaAdapter};
 pub use sexstories::{BuildSexStoriesAdapter, SexStoriesAdapter};
 pub use thefetlibrary::{BuildFetLibraryAdapter, FetLibraryAdapter};
 
+#[derive(Debug, Clone)]
 pub struct DocumentUrl {
     meta: HashMap<Meta, String>,
     url: String,
