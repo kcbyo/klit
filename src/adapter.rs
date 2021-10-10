@@ -82,7 +82,7 @@ pub trait Adapter {
 }
 
 mod prelude {
-    pub static USER_AGENT: &str = "";
+    pub static USER_AGENT: &str = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:93.0) Gecko/20100101 Firefox/93.0";
     pub use super::{Adapter, BuildAdapter, DirectoryUrls, DocumentUrl};
     pub use crate::{
         document::{Document, Meta},
