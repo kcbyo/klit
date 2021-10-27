@@ -1,6 +1,6 @@
 [package]
 name = "klit"
-version = "0.4.4"
+version = "0.4.5"
 authors = ["Keep Calm <keepcalmandbyo@gmail.com>"]
 edition = "2021"
 
