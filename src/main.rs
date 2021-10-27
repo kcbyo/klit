@@ -7,7 +7,6 @@ use std::{
 };
 
 use adapter::BuildAdapter;
-use colored::Colorize;
 use structopt::StructOpt;
 use url::Url;
 
@@ -48,6 +47,8 @@ fn main() {
 }
 
 fn run(opts: &Opts) -> Result<()> {
+    use owo_colors::OwoColorize;
+
     let domain = opts.domain()?;
     let adapters = register_adapters();
     let adapter = adapters
@@ -72,8 +73,7 @@ fn run(opts: &Opts) -> Result<()> {
         let url = match url {
             Ok(url) => url,
             Err(e) => {
-                let message = format!("Warn: {}", e);
-                eprintln!("{}", message.yellow());
+                eprintln!("{} {}", "Warn:".yellow(), e.yellow());
                 continue;
             }
         };
@@ -81,8 +81,7 @@ fn run(opts: &Opts) -> Result<()> {
         let document = match adapter.download(url) {
             Ok(document) => document,
             Err(e) => {
-                let message = format!("Warn: {}", e);
-                eprintln!("{}", message.yellow());
+                eprintln!("{} {}", "Warn:".yellow(), e.yellow());
                 continue;
             }
         };
